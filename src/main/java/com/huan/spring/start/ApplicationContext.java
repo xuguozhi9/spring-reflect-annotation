@@ -1,4 +1,4 @@
-package com.pcloud.start;
+package com.huan.spring.start;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -10,48 +10,58 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import com.pcloud.web.DispatchServlet;
-import com.plcoud.enums.Autowired;
-import com.plcoud.enums.Component;
-import com.plcoud.enums.Controller;
+import com.huan.spring.servlet.DispatchServlet;
+import com.huan.spring.enums.Autowired;
+import com.huan.spring.enums.Component;
+import com.huan.spring.enums.Controller;
 
+/**
+ * 创建对象
+ */
 public class ApplicationContext {
 	
 	private static Map<String,Object> map = new HashMap<>();
-	
+
+	/**
+	 * 创建对象并对对注入
+	 * @param classList 字节码信息的集合
+	 */
 	public static void handle(List<Class<?>> classList){
-		List<Class<?>> postClassList = new ArrayList<>();
+		List<Object> successList = new ArrayList<>();
 		classList.forEach(clz -> {
-			clz.getAnnotation(Controller.class);
 			Annotation[] annotations = clz.getAnnotations();
 			for(Annotation annotation : annotations){
+				Object obj = null;
 				if(annotation instanceof Component){
-					createObject(clz, ((Component) annotation).value());
-					postClassList.add(clz);
+					obj = createObject(clz, ((Component) annotation).value());
 				}
 				if(annotation instanceof Controller){
-					Object obj = createObject(clz, ((Controller) annotation).value());
+					obj = createObject(clz, ((Controller) annotation).value());
 					DispatchServlet.handleController(obj, clz);
-					postClassList.add(clz);
+				}
+				if(obj != null){
+					successList.add(obj);
 				}
 			}
 		});
-		postClassList(postClassList);
+		postClassList(successList);
 	}
 
-	private static void postClassList(List<Class<?>> postClassList) {
-		postClassList.forEach(clz ->{
-			Field[] fields = clz.getDeclaredFields();
+
+	/**
+	 * 注入
+	 * @param successList
+	 */
+	private static void postClassList(List<Object> successList) {
+		successList.forEach(obj ->{
+			Field[] fields = obj.getClass().getDeclaredFields();
 			for(Field field : fields){
 				Autowired autowired = field.getAnnotation(Autowired.class);
 				if(autowired != null){
 					field.setAccessible(true);
 					Class<?> type = field.getType();
-					System.out.println(type+"3");
-					System.out.println(getMap(clz));
-					System.out.println(getMap(type));
 					try {
-						field.set(getMap(clz), getMap(type));
+						field.set(obj, getMap(type));
 					} catch (IllegalArgumentException | IllegalAccessException e) {
 						e.printStackTrace();
 					}
@@ -77,14 +87,15 @@ public class ApplicationContext {
 		return null;
 	}
 
-	private static Object createObject(Class<?> clz, String key) {
-		if(key == null || key.equals("")){
-			key = clz.getSimpleName();
-			key = key.substring(0,1).toLowerCase() + key.substring(1);
+
+	private static Object createObject(Class<?> clz, String name) {
+		if(name == null || name.equals("")){
+			name = clz.getSimpleName();
+			name = name.substring(0,1).toLowerCase() + name.substring(1);
 		}
 		try {
 			Object newInstance = clz.newInstance();
-			map.put(key,newInstance);
+			map.put(name,newInstance);
 			return newInstance;
 		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();

@@ -12,7 +12,7 @@
   <!-- 配置Servlet分发器 需要指定springmvc的核心配置文件 -->
   <servlet>
   	<servlet-name>springmvc</servlet-name>
-  	<servlet-class>com.pcloud.web.DispatchServlet</servlet-class>
+  	<servlet-class>com.huan.spring.servlet.DispatchServlet</servlet-class>
   </servlet>
   
   <servlet-mapping>

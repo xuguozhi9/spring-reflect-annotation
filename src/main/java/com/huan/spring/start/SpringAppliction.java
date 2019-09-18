@@ -1,7 +1,10 @@
-package com.pcloud.start;
+package com.huan.spring.start;
 
 import java.util.List;
 
+/**
+ * Spring启动类
+ */
 public class SpringAppliction {
 	
 	public static <T> void run(Class<T> clz){
